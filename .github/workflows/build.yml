@@ -7,15 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Unpack project
+      # The NudeNet model is committed at app/src/main/assets/320n.onnx.
+      # Fail fast if it is missing or has been replaced (e.g. by an HTML error page),
+      # otherwise the app builds fine but can't load the model at runtime.
+      - name: Verify NudeNet model
         run: |
-          unzip -o -q BetaCensor.zip -d unpacked
-          cp -r unpacked/BetaCensor/. .
-      - name: Download NudeNet model
-        run: |
-          mkdir -p app/src/main/assets
-          curl -L --fail -o app/src/main/assets/320n.onnx \
-            https://github.com/notAI-tech/NudeNet/releases/download/v3.4-weights/320n.onnx
+          echo "c15d8273adad2d0a92f014cc69ab2d6c311a06777a55545f2c4eb46f51911f0f  app/src/main/assets/320n.onnx" | sha256sum -c -
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -24,6 +21,10 @@ jobs:
         with:
           gradle-version: '8.9'
       - run: gradle assembleDebug --no-daemon
+      - name: Verify model is packaged in the APK
+        run: |
+          apk=$(ls app/build/outputs/apk/debug/*.apk)
+          unzip -l "$apk" assets/320n.onnx | grep -q ' 12150158 '
       - uses: actions/upload-artifact@v4
         with:
           name: BetaCensor-apk

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Beta Censor</string>
+    <string name="a11y_desc">Draws censor bars over selected body parts while the Reddit app is open. Only the foreground app name and scroll/tap events are read; no content leaves your phone.</string>
+</resources>
